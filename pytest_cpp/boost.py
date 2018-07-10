@@ -13,9 +13,9 @@ class BoostTestFacade(object):
     """
 
     @classmethod
-    def is_test_suite(cls, executable):
+    def is_test_suite(cls, executable, emuargs=()):
         try:
-            output = subprocess.check_output([executable, '--help'],
+            output = subprocess.check_output([*emuargs, executable, '--help'],
                                              stderr=subprocess.STDOUT,
                                              universal_newlines=True)
         except (subprocess.CalledProcessError, OSError):
@@ -23,12 +23,12 @@ class BoostTestFacade(object):
         else:
             return '--output_format' in output and 'log_format' in output
 
-    def list_tests(self, executable):
+    def list_tests(self, executable, emuargs=()):
         # unfortunately boost doesn't provide us with a way to list the tests
         # inside the executable, so the test_id is a dummy placeholder :(
         return [os.path.basename(os.path.splitext(executable)[0])]
 
-    def run_test(self, executable, test_id, test_args=()):
+    def run_test(self, executable, test_id, test_args=(), emuargs=()):
 
         def read_file(name):
             try:
@@ -41,6 +41,7 @@ class BoostTestFacade(object):
         log_xml = os.path.join(temp_dir, 'log.xml')
         report_xml = os.path.join(temp_dir, 'report.xml')
         args = [
+            *emuargs,
             executable,
             '--output_format=XML',
             '--log_sink=%s' % log_xml,

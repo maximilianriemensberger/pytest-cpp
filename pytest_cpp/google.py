@@ -13,9 +13,9 @@ class GoogleTestFacade(object):
     """
 
     @classmethod
-    def is_test_suite(cls, executable):
+    def is_test_suite(cls, executable, emuargs=()):
         try:
-            output = subprocess.check_output([executable, '--help'],
+            output = subprocess.check_output([*emuargs, executable, '--help'],
                                              stderr=subprocess.STDOUT,
                                              universal_newlines=True)
         except (subprocess.CalledProcessError, OSError):
@@ -23,7 +23,7 @@ class GoogleTestFacade(object):
         else:
             return '--gtest_list_tests' in output
 
-    def list_tests(self, executable):
+    def list_tests(self, executable, emuargs=()):
         """
         Executes google-test with "--gtest_list_tests" and gets list of tests
         parsing output like this:
@@ -33,7 +33,8 @@ class GoogleTestFacade(object):
           ReturnsTrueForPrimes
           CanGetNextPrime
         """
-        output = subprocess.check_output([executable, '--gtest_list_tests'],
+        output = subprocess.check_output([*emuargs, executable,
+                                          '--gtest_list_tests'],
                                          stderr=subprocess.STDOUT,
                                          universal_newlines=True)
 
@@ -53,9 +54,10 @@ class GoogleTestFacade(object):
                 result.append(test_suite + strip_comment(line).strip())
         return result
 
-    def run_test(self, executable, test_id, test_args=()):
+    def run_test(self, executable, test_id, test_args=(), emuargs=()):
         xml_filename = self._get_temp_xml_filename()
         args = [
+            *emuargs,
             executable,
             '--gtest_filter=' + test_id,
             '--gtest_output=xml:%s' % xml_filename,
